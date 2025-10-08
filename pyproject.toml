@@ -1,0 +1,53 @@
+[tool.pytest.ini_options]
+# Pytest configuration for E-commerce Selenium tests
+
+# Test discovery
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+# Markers
+markers = [
+    "selenium: Selenium WebDriver tests",
+    "smoke: Smoke tests for critical functionality",
+    "regression: Regression tests for bug fixes",
+    "slow: Slow running tests",
+    "integration: Integration tests",
+    "unit: Unit tests",
+    "auth: Authentication tests",
+    "cart: Shopping cart tests",
+    "checkout: Checkout process tests",
+    "products: Product browsing tests",
+    "responsive: Responsive design tests",
+    "errors: Error handling tests"
+]
+
+# Output options
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+    "--maxfail=10",
+    "--disable-warnings"
+]
+
+# Test execution
+minversion = "6.0"
+testmon = true
+testmon_off = false
+
+# Filtering
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning"
+]
+
+# Logging
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(name)s: %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+# Coverage (if pytest-cov is installed)
+# addopts = "--cov=app --cov-report=html --cov-report=term-missing"

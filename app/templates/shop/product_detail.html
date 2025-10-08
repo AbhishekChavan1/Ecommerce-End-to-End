@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Product Images -->
+        <div class="col-md-6">
+            <div class="product-image">
+                {% if product.image_filename %}
+                    {% if product.image_filename.startswith('http') %}
+                        <img src="{{ product.image_filename }}" 
+                             alt="{{ product.name }}" class="img-fluid rounded shadow" 
+                             style="max-height: 400px; width: 100%; object-fit: cover;">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" 
+                             alt="{{ product.name }}" class="img-fluid rounded shadow">
+                    {% endif %}
+                {% else %}
+                    <div class="bg-light d-flex align-items-center justify-content-center rounded shadow" 
+                         style="height: 400px;">
+                        <i class="fas fa-image fa-5x text-muted"></i>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Product Details -->
+        <div class="col-md-6">
+            <div class="product-details">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('shop.products') }}">Products</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('shop.products', category=product.category_id) }}">{{ product.category.name }}</a></li>
+                        <li class="breadcrumb-item active">{{ product.name }}</li>
+                    </ol>
+                </nav>
+                
+                <h1 class="display-6">{{ product.name }}</h1>
+                
+                <!-- Price -->
+                <div class="price-section mb-4">
+                    {% if product.is_on_sale() %}
+                        <span class="h3 text-danger me-2">${{ "%.2f"|format(product.get_display_price()) }}</span>
+                        <span class="h5 text-muted text-decoration-line-through">${{ "%.2f"|format(product.price) }}</span>
+                        <span class="badge bg-danger ms-2">SALE</span>
+                    {% else %}
+                        <span class="h3 text-primary">${{ "%.2f"|format(product.get_display_price()) }}</span>
+                    {% endif %}
+                </div>
+                
+                <!-- Stock Status -->
+                <div class="stock-status mb-3">
+                    {% if product.is_in_stock() %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-check-circle"></i> In Stock ({{ product.stock_quantity }} available)
+                        </span>
+                    {% else %}
+                        <span class="badge bg-danger">
+                            <i class="fas fa-times-circle"></i> Out of Stock
+                        </span>
+                    {% endif %}
+                    
+                    {% if product.is_low_stock() and product.is_in_stock() %}
+                        <span class="badge bg-warning ms-2">
+                            <i class="fas fa-exclamation-triangle"></i> Low Stock
+                        </span>
+                    {% endif %}
+                </div>
+                
+                <!-- Description -->
+                {% if product.short_description %}
+                <div class="short-description mb-3">
+                    <p class="lead">{{ product.short_description }}</p>
+                </div>
+                {% endif %}
+                
+                <!-- Add to Cart Form -->
+                {% if product.is_in_stock() %}
+                <form method="POST" action="{{ url_for('shop.add_to_cart') }}" class="add-to-cart-form mb-4">
+                    {{ form.hidden_tag() }}
+                    {{ form.product_id() }}
+                    
+                    <div class="row align-items-end">
+                        <div class="col-md-4">
+                            <label for="quantity" class="form-label">Quantity:</label>
+                            {{ form.quantity(class="form-control", min="1", max=product.stock_quantity) }}
+                        </div>
+                        <div class="col-md-8">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                {% else %}
+                <div class="mb-4">
+                    <button class="btn btn-secondary btn-lg" disabled>
+                        <i class="fas fa-times"></i> Out of Stock
+                    </button>
+                </div>
+                {% endif %}
+                
+                <!-- Product Info -->
+                <div class="product-info">
+                    <ul class="list-unstyled">
+                        <li><strong>Category:</strong> {{ product.category.name }}</li>
+                        {% if product.sku %}
+                        <li><strong>SKU:</strong> {{ product.sku }}</li>
+                        {% endif %}
+                        {% if product.weight %}
+                        <li><strong>Weight:</strong> {{ product.weight }}g</li>
+                        {% endif %}
+                        {% if product.dimensions %}
+                        <li><strong>Dimensions:</strong> {{ product.dimensions }}</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <!-- Social Share -->
+                <div class="social-share mt-4">
+                    <p class="mb-2"><strong>Share this product:</strong></p>
+                    <a href="#" class="btn btn-outline-primary btn-sm me-2">
+                        <i class="fab fa-facebook-f"></i> Facebook
+                    </a>
+                    <a href="#" class="btn btn-outline-primary btn-sm me-2">
+                        <i class="fab fa-twitter"></i> Twitter
+                    </a>
+                    <a href="#" class="btn btn-outline-primary btn-sm">
+                        <i class="fab fa-pinterest"></i> Pinterest
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Product Description and Details -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="productTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="description-tab" data-bs-toggle="tab" 
+                            data-bs-target="#description" type="button" role="tab">
+                        Description
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="specifications-tab" data-bs-toggle="tab" 
+                            data-bs-target="#specifications" type="button" role="tab">
+                        Specifications
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="productTabsContent">
+                <div class="tab-pane fade show active" id="description" role="tabpanel">
+                    <div class="p-4">
+                        {% if product.description %}
+                            <div class="product-description">
+                                {{ product.description|replace('\n', '<br>')|safe }}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No detailed description available for this product.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="specifications" role="tabpanel">
+                    <div class="p-4">
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Category</strong></td>
+                                    <td>{{ product.category.name }}</td>
+                                </tr>
+                                {% if product.sku %}
+                                <tr>
+                                    <td><strong>SKU</strong></td>
+                                    <td>{{ product.sku }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if product.weight %}
+                                <tr>
+                                    <td><strong>Weight</strong></td>
+                                    <td>{{ product.weight }}g</td>
+                                </tr>
+                                {% endif %}
+                                {% if product.dimensions %}
+                                <tr>
+                                    <td><strong>Dimensions</strong></td>
+                                    <td>{{ product.dimensions }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <td><strong>Stock Status</strong></td>
+                                    <td>
+                                        {% if product.is_in_stock() %}
+                                            <span class="text-success">In Stock ({{ product.stock_quantity }} available)</span>
+                                        {% else %}
+                                            <span class="text-danger">Out of Stock</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3>Related Products</h3>
+            <div class="row">
+                {% for related_product in related_products %}
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card product-card h-100">
+                        {% if related_product.image_filename %}
+                            {% if related_product.image_filename.startswith('http') %}
+                                <img src="{{ related_product.image_filename }}" 
+                                     class="card-img-top" alt="{{ related_product.name }}" style="height: 200px; object-fit: cover;">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='uploads/' + related_product.image_filename) }}" 
+                                     class="card-img-top" alt="{{ related_product.name }}" style="height: 200px; object-fit: cover;">
+                            {% endif %}
+                        {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-image fa-3x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title">{{ related_product.name }}</h6>
+                            <p class="card-text text-muted small flex-grow-1">
+                                {{ related_product.short_description or (related_product.description[:50] + '...' if related_product.description and related_product.description|length > 50 else related_product.description) }}
+                            </p>
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="price-display fw-bold text-primary">${{ "%.2f"|format(related_product.get_display_price()) }}</span>
+                                </div>
+                                <a href="{{ url_for('shop.product_detail', id=related_product.id) }}" class="btn btn-outline-primary btn-sm w-100">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% block scripts %}
+<script>
+// Update quantity based on stock
+document.addEventListener('DOMContentLoaded', function() {
+    const quantityInput = document.querySelector('input[name="quantity"]');
+    if (quantityInput) {
+        quantityInput.addEventListener('change', function() {
+            const max = parseInt(this.getAttribute('max'));
+            if (this.value > max) {
+                this.value = max;
+                alert('Maximum available quantity is ' + max);
+            }
+            if (this.value < 1) {
+                this.value = 1;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

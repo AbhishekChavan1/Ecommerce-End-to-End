@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Success Message -->
+            <div class="text-center mb-4">
+                <div class="display-1 text-success mb-3">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h1 class="text-success">Order Confirmed!</h1>
+                <p class="lead text-muted">Thank you for your demo order. Your order has been successfully placed.</p>
+            </div>
+            
+            <!-- Order Details Card -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-receipt"></i> Order Details</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold">Order Information</h6>
+                            <p class="mb-1"><strong>Order Number:</strong> {{ order.order_number }}</p>
+                            <p class="mb-1"><strong>Order Date:</strong> {{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                            <p class="mb-1"><strong>Status:</strong> 
+                                <span class="badge bg-primary">{{ order.status.value.title() }}</span>
+                            </p>
+                            <p class="mb-1"><strong>Payment Status:</strong> 
+                                <span class="badge bg-success">{{ order.payment_status.value.title() }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold">Shipping Address</h6>
+                            <address>
+                                {{ order.shipping_address.get('first_name', '') }} {{ order.shipping_address.get('last_name', '') }}<br>
+                                {{ order.shipping_address.get('address_line1', '') }}<br>
+                                {% if order.shipping_address.get('address_line2') %}
+                                    {{ order.shipping_address.get('address_line2') }}<br>
+                                {% endif %}
+                                {{ order.shipping_address.get('city', '') }}, {{ order.shipping_address.get('state', '') }} {{ order.shipping_address.get('postal_code', '') }}<br>
+                                {{ order.shipping_address.get('country', '') }}
+                            </address>
+                        </div>
+                    </div>
+                    
+                    <!-- Order Items -->
+                    <h6 class="fw-bold mb-3">Order Items</h6>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if item.product.image_filename %}
+                                                {% if item.product.image_filename.startswith('http') %}
+                                                    <img src="{{ item.product.image_filename }}" 
+                                                         alt="{{ item.product.name }}" class="me-3" 
+                                                         style="width: 40px; height: 40px; object-fit: cover;">
+                                                {% else %}
+                                                    <img src="{{ url_for('static', filename='uploads/' + item.product.image_filename) }}" 
+                                                         alt="{{ item.product.name }}" class="me-3" 
+                                                         style="width: 40px; height: 40px; object-fit: cover;">
+                                                {% endif %}
+                                            {% else %}
+                                                <div class="bg-light me-3 d-flex align-items-center justify-content-center" 
+                                                     style="width: 40px; height: 40px;">
+                                                    <i class="fas fa-image text-muted"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <strong>{{ item.product.name }}</strong><br>
+                                                <small class="text-muted">SKU: {{ item.product.sku }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>${{ "%.2f"|format(item.price) }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td class="fw-bold">${{ "%.2f"|format(item.get_total_price()) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Order Summary -->
+                    <div class="row justify-content-end">
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Subtotal:</span>
+                                        <span>${{ "%.2f"|format(order.total_amount - order.tax_amount) }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Shipping:</span>
+                                        <span class="text-success">${{ "%.2f"|format(order.shipping_amount) }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Tax:</span>
+                                        <span>${{ "%.2f"|format(order.tax_amount) }}</span>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between fw-bold h5">
+                                        <span>Total:</span>
+                                        <span class="text-primary">${{ "%.2f"|format(order.total_amount) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Demo Notice -->
+            <div class="alert alert-info mt-4">
+                <h6><i class="fas fa-info-circle"></i> Demo Order Notice</h6>
+                <p class="mb-0">This is a demonstration order. No actual payment has been processed and no products will be shipped. This is for testing and demonstration purposes only.</p>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="text-center mt-4">
+                <a href="{{ url_for('shop.products') }}" class="btn btn-primary btn-lg me-3">
+                    <i class="fas fa-shopping-bag"></i> Continue Shopping
+                </a>
+                <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-home"></i> Back to Home
+                </a>
+            </div>
+            
+            <!-- What's Next Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-clock"></i> What Happens Next?</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="display-6 text-primary mb-2">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <h6>Confirmation Email</h6>
+                            <small class="text-muted">A demo confirmation email would be sent to {{ order.shipping_address.get('email') }}</small>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="display-6 text-warning mb-2">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <h6>Processing</h6>
+                            <small class="text-muted">Your demo order would be processed within 1-2 business days</small>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="display-6 text-success mb-2">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <h6>Shipping</h6>
+                            <small class="text-muted">Demo shipping would take 3-5 business days</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add some confetti effect for demo
+    setTimeout(function() {
+        // Simple celebration animation
+        const successIcon = document.querySelector('.fa-check-circle');
+        if (successIcon) {
+            successIcon.style.animation = 'bounce 1s ease-in-out';
+        }
+    }, 500);
+    
+    // Print order functionality
+    const printBtn = document.createElement('button');
+    printBtn.className = 'btn btn-outline-secondary btn-sm mt-2';
+    printBtn.innerHTML = '<i class="fas fa-print"></i> Print Order';
+    printBtn.onclick = function() {
+        window.print();
+    };
+    
+    // Add print button to order details card
+    const cardHeader = document.querySelector('.card-header');
+    if (cardHeader) {
+        cardHeader.appendChild(printBtn);
+        printBtn.style.float = 'right';
+    }
+});
+
+// Print styles
+const style = document.createElement('style');
+style.innerHTML = `
+@media print {
+    .btn, .alert-info, .card:last-child { display: none !important; }
+    .card { border: 1px solid #000 !important; }
+}
+@keyframes bounce {
+    0%, 20%, 60%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    80% { transform: translateY(-5px); }
+}
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}
+{% endblock %}

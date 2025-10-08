@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="text-center py-5">
+        <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+        <h2>Your cart is empty</h2>
+        <p class="lead text-muted">Looks like you haven't added any items to your cart yet.</p>
+        <div class="mt-4">
+            <a href="{{ url_for('shop.products') }}" class="btn btn-primary btn-lg me-2">
+                <i class="fas fa-shopping-bag"></i> Start Shopping
+            </a>
+            <a href="{{ url_for('main.index') }}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-home"></i> Go Home
+            </a>
+        </div>
+    </div>
+    
+    <!-- Featured Products -->
+    <div class="mt-5">
+        <h3 class="text-center mb-4">You might like these products</h3>
+        <div class="row">
+            {% set featured = [] %}
+            {% if featured %}
+                {% for product in featured %}
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <div class="card product-card h-100">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">{{ product.name }}</h6>
+                            <p class="card-text text-primary fw-bold">${{ "%.2f"|format(product.get_display_price()) }}</p>
+                            <a href="{{ url_for('shop.product_detail', id=product.id) }}" class="btn btn-sm btn-outline-primary">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center">
+                    <p class="text-muted">No featured products available at the moment.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

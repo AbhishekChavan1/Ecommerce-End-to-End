@@ -1,0 +1,453 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - E-Commerce{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Checkout</h2>
+                <a href="{{ url_for('shop.cart') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Cart
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <form method="POST" id="checkout-form">
+        {{ form.hidden_tag() }}
+        
+        <div class="row">
+            <!-- Checkout Form -->
+            <div class="col-lg-8">
+                <!-- Shipping Information -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-shipping-fast me-2"></i>Shipping Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.shipping_first_name.label(class="form-label") }}
+                                {{ form.shipping_first_name(class="form-control" + (" is-invalid" if form.shipping_first_name.errors else "")) }}
+                                {% for error in form.shipping_first_name.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.shipping_last_name.label(class="form-label") }}
+                                {{ form.shipping_last_name(class="form-control" + (" is-invalid" if form.shipping_last_name.errors else "")) }}
+                                {% for error in form.shipping_last_name.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.shipping_email.label(class="form-label") }}
+                                {{ form.shipping_email(class="form-control" + (" is-invalid" if form.shipping_email.errors else "")) }}
+                                {% for error in form.shipping_email.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.shipping_phone.label(class="form-label") }}
+                                {{ form.shipping_phone(class="form-control" + (" is-invalid" if form.shipping_phone.errors else "")) }}
+                                {% for error in form.shipping_phone.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.shipping_address_line1.label(class="form-label") }}
+                            {{ form.shipping_address_line1(class="form-control" + (" is-invalid" if form.shipping_address_line1.errors else "")) }}
+                            {% for error in form.shipping_address_line1.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.shipping_address_line2.label(class="form-label") }}
+                            {{ form.shipping_address_line2(class="form-control") }}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                {{ form.shipping_city.label(class="form-label") }}
+                                {{ form.shipping_city(class="form-control" + (" is-invalid" if form.shipping_city.errors else "")) }}
+                                {% for error in form.shipping_city.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.shipping_state.label(class="form-label") }}
+                                {{ form.shipping_state(class="form-control" + (" is-invalid" if form.shipping_state.errors else "")) }}
+                                {% for error in form.shipping_state.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.shipping_postal_code.label(class="form-label") }}
+                                {{ form.shipping_postal_code(class="form-control" + (" is-invalid" if form.shipping_postal_code.errors else "")) }}
+                                {% for error in form.shipping_postal_code.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.shipping_country.label(class="form-label") }}
+                            {{ form.shipping_country(class="form-control") }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Payment Information -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-credit-card me-2"></i>Payment Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            {{ form.payment_method.label(class="form-label") }}
+                            {{ form.payment_method(class="form-select" + (" is-invalid" if form.payment_method.errors else "")) }}
+                            {% for error in form.payment_method.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Credit Card Fields (shown when credit card is selected) -->
+                        <div id="credit-card-fields" style="display: none;">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Demo Mode:</strong> This is a demonstration checkout. No real payment will be processed.
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="card_number" class="form-label">Card Number</label>
+                                <input type="text" class="form-control" id="card_number" placeholder="1234 5678 9012 3456">
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="card_expiry" class="form-label">Expiry Date</label>
+                                    <input type="text" class="form-control" id="card_expiry" placeholder="MM/YY">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="card_cvv" class="form-label">CVV</label>
+                                    <input type="text" class="form-control" id="card_cvv" placeholder="123">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="card_name" class="form-label">Name on Card</label>
+                                    <input type="text" class="form-control" id="card_name" placeholder="John Doe">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Order Notes -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-sticky-note me-2"></i>Order Notes (Optional)
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {{ form.order_notes(class="form-control", rows="3", placeholder="Any special instructions for your order...") }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="card order-summary">
+                    <div class="card-header">
+                        <h5 class="mb-0">Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Order Items -->
+                        <div class="order-items mb-3">
+                            {% for item in cart_items %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center">
+                                    {% if item.product.image_filename %}
+                                    <img src="{{ url_for('static', filename='uploads/' + item.product.image_filename) }}" 
+                                         class="order-item-image me-2" alt="{{ item.product.name }}">
+                                    {% endif %}
+                                    <div>
+                                        <h6 class="mb-0 small">{{ item.product.name }}</h6>
+                                        <small class="text-muted">Qty: {{ item.quantity }}</small>
+                                    </div>
+                                </div>
+                                <span class="fw-bold">${{ "%.2f"|format(item.quantity * item.product.price) }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Totals -->
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
+                            <span>${{ "%.2f"|format(cart_total) }}</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipping:</span>
+                            <span>
+                                {% if cart_total >= 50 %}
+                                    <span class="text-success">Free</span>
+                                {% else %}
+                                    $5.99
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Tax:</span>
+                            <span>${{ "%.2f"|format(cart_total * 0.08) }}</span>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between mb-3">
+                            <strong>Total:</strong>
+                            <strong class="text-primary">
+                                ${{ "%.2f"|format(cart_total + (0 if cart_total >= 50 else 5.99) + cart_total * 0.08) }}
+                            </strong>
+                        </div>
+                        
+                        <!-- Terms and Conditions -->
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="terms-agreement" required>
+                            <label class="form-check-label small" for="terms-agreement">
+                                I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a>
+                                and <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>
+                            </label>
+                        </div>
+                        
+                        <!-- Place Order Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg" id="place-order-btn">
+                                <i class="fas fa-lock me-2"></i>Place Order
+                            </button>
+                        </div>
+                        
+                        <!-- Security Info -->
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-shield-alt me-1"></i>
+                                Your payment information is secure and encrypted
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Accepted Payment Methods -->
+                <div class="card mt-3">
+                    <div class="card-body text-center">
+                        <h6 class="card-title">We Accept</h6>
+                        <div class="payment-methods">
+                            <i class="fab fa-cc-visa fa-2x me-2"></i>
+                            <i class="fab fa-cc-mastercard fa-2x me-2"></i>
+                            <i class="fab fa-cc-amex fa-2x me-2"></i>
+                            <i class="fab fa-cc-paypal fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Terms and Conditions Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Acceptance of Terms</h6>
+                <p>By using this e-commerce platform, you agree to be bound by these terms and conditions.</p>
+                
+                <h6>2. Products and Services</h6>
+                <p>All products are subject to availability. We reserve the right to discontinue any product at any time.</p>
+                
+                <h6>3. Payment</h6>
+                <p>Payment must be received in full before products are shipped. We accept major credit cards and PayPal.</p>
+                
+                <h6>4. Shipping</h6>
+                <p>Shipping costs and delivery times vary by location and shipping method selected.</p>
+                
+                <h6>5. Returns</h6>
+                <p>Items may be returned within 30 days of purchase in original condition.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy Policy Modal -->
+<div class="modal fade" id="privacyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Privacy Policy</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Information We Collect</h6>
+                <p>We collect information you provide directly to us, such as when you create an account or make a purchase.</p>
+                
+                <h6>How We Use Your Information</h6>
+                <p>We use the information we collect to provide, maintain, and improve our services.</p>
+                
+                <h6>Information Sharing</h6>
+                <p>We do not sell, trade, or otherwise transfer your personal information to third parties without your consent.</p>
+                
+                <h6>Data Security</h6>
+                <p>We implement appropriate security measures to protect your personal information.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Show/hide credit card fields based on payment method
+    $('#payment_method').change(function() {
+        if ($(this).val() === 'credit_card') {
+            $('#credit-card-fields').slideDown();
+        } else {
+            $('#credit-card-fields').slideUp();
+        }
+    });
+    
+    // Trigger change event on page load
+    $('#payment_method').trigger('change');
+    
+    // Format card number input
+    $('#card_number').on('input', function() {
+        let value = $(this).val().replace(/\D/g, '');
+        value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+        $(this).val(value);
+    });
+    
+    // Format expiry date input
+    $('#card_expiry').on('input', function() {
+        let value = $(this).val().replace(/\D/g, '');
+        if (value.length >= 2) {
+            value = value.substring(0, 2) + '/' + value.substring(2, 4);
+        }
+        $(this).val(value);
+    });
+    
+    // Format CVV input
+    $('#card_cvv').on('input', function() {
+        let value = $(this).val().replace(/\D/g, '');
+        $(this).val(value.substring(0, 4));
+    });
+    
+    // Auto-fill shipping info from user profile
+    {% if current_user.is_authenticated %}
+    if (!$('#shipping_first_name').val()) {
+        $('#shipping_first_name').val('{{ current_user.first_name }}');
+    }
+    if (!$('#shipping_last_name').val()) {
+        $('#shipping_last_name').val('{{ current_user.last_name }}');
+    }
+    if (!$('#shipping_email').val()) {
+        $('#shipping_email').val('{{ current_user.email }}');
+    }
+    {% endif %}
+    
+    // Form submission
+    $('#checkout-form').submit(function(e) {
+        const submitBtn = $('#place-order-btn');
+        const originalText = submitBtn.html();
+        
+        // Validate terms agreement
+        if (!$('#terms-agreement').is(':checked')) {
+            e.preventDefault();
+            alert('Please agree to the Terms and Conditions to continue.');
+            return false;
+        }
+        
+        // Validate credit card fields if credit card is selected
+        if ($('#payment_method').val() === 'credit_card') {
+            const cardNumber = $('#card_number').val().replace(/\s/g, '');
+            const cardExpiry = $('#card_expiry').val();
+            const cardCvv = $('#card_cvv').val();
+            const cardName = $('#card_name').val();
+            
+            if (!cardNumber || cardNumber.length < 13) {
+                e.preventDefault();
+                alert('Please enter a valid card number.');
+                return false;
+            }
+            
+            if (!cardExpiry || cardExpiry.length < 5) {
+                e.preventDefault();
+                alert('Please enter a valid expiry date.');
+                return false;
+            }
+            
+            if (!cardCvv || cardCvv.length < 3) {
+                e.preventDefault();
+                alert('Please enter a valid CVV.');
+                return false;
+            }
+            
+            if (!cardName.trim()) {
+                e.preventDefault();
+                alert('Please enter the name on the card.');
+                return false;
+            }
+        }
+        
+        // Show loading state
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Processing...');
+        
+        // If validation passes, allow form submission
+        setTimeout(function() {
+            submitBtn.prop('disabled', false).html(originalText);
+        }, 10000); // Re-enable after 10 seconds as fallback
+    });
+    
+    // Auto-save form data to localStorage
+    $('#checkout-form input, #checkout-form select, #checkout-form textarea').on('change', function() {
+        const formData = {};
+        $('#checkout-form').serializeArray().forEach(function(field) {
+            formData[field.name] = field.value;
+        });
+        localStorage.setItem('checkoutFormData', JSON.stringify(formData));
+    });
+    
+    // Restore form data from localStorage
+    const savedData = localStorage.getItem('checkoutFormData');
+    if (savedData) {
+        const formData = JSON.parse(savedData);
+        Object.keys(formData).forEach(function(key) {
+            $('#' + key).val(formData[key]);
+        });
+    }
+});
+</script>
+{% endblock %}

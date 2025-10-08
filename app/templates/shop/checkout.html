@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-credit-card"></i> Checkout</h4>
+                    <small class="text-muted">Demo Mode - No actual payment will be processed</small>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Shipping Information -->
+                        <div class="mb-4">
+                            <h5 class="text-primary"><i class="fas fa-shipping-fast"></i> Shipping Information</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.shipping_first_name.label(class="form-label") }}
+                                    {{ form.shipping_first_name() }}
+                                    {% for error in form.shipping_first_name.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ form.shipping_last_name.label(class="form-label") }}
+                                    {{ form.shipping_last_name() }}
+                                    {% for error in form.shipping_last_name.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.shipping_email.label(class="form-label") }}
+                                    {{ form.shipping_email() }}
+                                    {% for error in form.shipping_email.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ form.shipping_phone.label(class="form-label") }}
+                                    {{ form.shipping_phone() }}
+                                    {% for error in form.shipping_phone.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.shipping_address_line1.label(class="form-label") }}
+                                {{ form.shipping_address_line1() }}
+                                {% for error in form.shipping_address_line1.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.shipping_address_line2.label(class="form-label") }}
+                                {{ form.shipping_address_line2() }}
+                                {% for error in form.shipping_address_line2.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    {{ form.shipping_city.label(class="form-label") }}
+                                    {{ form.shipping_city() }}
+                                    {% for error in form.shipping_city.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ form.shipping_state.label(class="form-label") }}
+                                    {{ form.shipping_state() }}
+                                    {% for error in form.shipping_state.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ form.shipping_postal_code.label(class="form-label") }}
+                                    {{ form.shipping_postal_code() }}
+                                    {% for error in form.shipping_postal_code.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.shipping_country.label(class="form-label") }}
+                                {{ form.shipping_country() }}
+                                {% for error in form.shipping_country.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Payment Information -->
+                        <div class="mb-4">
+                            <h5 class="text-primary"><i class="fas fa-credit-card"></i> Payment Method</h5>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> This is a demo - no actual payment will be processed
+                            </div>
+                            <div class="mb-3">
+                                {{ form.payment_method.label(class="form-label") }}
+                                {{ form.payment_method() }}
+                                {% for error in form.payment_method.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Order Notes -->
+                        <div class="mb-4">
+                            <h5 class="text-primary"><i class="fas fa-sticky-note"></i> Order Notes (Optional)</h5>
+                            {{ form.notes() }}
+                            {% for error in form.notes.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg" id="place-order-btn">
+                                <i class="fas fa-lock"></i> Place Demo Order
+                            </button>
+                            <a href="{{ url_for('shop.cart') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Cart
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-receipt"></i> Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    {% for item in cart.items %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <small class="fw-bold">{{ item.product.name }}</small><br>
+                            <small class="text-muted">Qty: {{ item.quantity }}</small>
+                        </div>
+                        <span class="text-end">${{ "%.2f"|format(item.get_total_price()) }}</span>
+                    </div>
+                    {% endfor %}
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between">
+                        <span>Subtotal:</span>
+                        <span>${{ "%.2f"|format(cart.get_total_amount()) }}</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <span>Shipping:</span>
+                        <span class="text-success">FREE</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <span>Tax (Demo):</span>
+                        <span>${{ "%.2f"|format(cart.get_total_amount() * 0.08) }}</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between fw-bold h5">
+                        <span>Total:</span>
+                        <span class="text-primary">${{ "%.2f"|format(cart.get_total_amount() * 1.08) }}</span>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-shield-alt"></i> Secure Demo Checkout<br>
+                            <i class="fas fa-truck"></i> Free Demo Shipping<br>
+                            <i class="fas fa-undo"></i> Demo Returns Policy
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitBtn = document.getElementById('place-order-btn');
+    const originalText = submitBtn.innerHTML;
+    
+    form.addEventListener('submit', function(e) {
+        // Show loading state
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing Demo Order...';
+        submitBtn.disabled = true;
+        
+        // Show processing message
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-info mt-3';
+        alert.innerHTML = '<i class="fas fa-cog fa-spin"></i> Processing your demo order... This may take a moment.';
+        form.appendChild(alert);
+    });
+    
+    // Auto-fill demo data button
+    const demoBtn = document.createElement('button');
+    demoBtn.type = 'button';
+    demoBtn.className = 'btn btn-outline-info btn-sm mb-3';
+    demoBtn.innerHTML = '<i class="fas fa-magic"></i> Fill Demo Data';
+    demoBtn.onclick = function() {
+        document.getElementById('shipping_first_name').value = 'John';
+        document.getElementById('shipping_last_name').value = 'Doe';
+        document.getElementById('shipping_email').value = 'john.doe@example.com';
+        document.getElementById('shipping_phone').value = '+1 (555) 123-4567';
+        document.getElementById('shipping_address_line1').value = '123 Demo Street';
+        document.getElementById('shipping_city').value = 'Demo City';
+        document.getElementById('shipping_state').value = 'DC';
+        document.getElementById('shipping_postal_code').value = '12345';
+        document.getElementById('shipping_country').value = 'United States';
+        document.getElementById('payment_method').value = 'credit_card';
+        document.getElementById('notes').value = 'This is a demo order for testing purposes.';
+    };
+    
+    // Insert demo button after the first heading
+    const firstHeading = document.querySelector('h5');
+    firstHeading.parentNode.insertBefore(demoBtn, firstHeading.nextSibling);
+});
+</script>
+{% endblock %}
+{% endblock %}

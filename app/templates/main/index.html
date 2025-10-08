@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Hero Section -->
+    <section class="hero-section bg-primary text-white py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold mb-4">Welcome to Our Store</h1>
+                    <p class="lead mb-4">Discover amazing products at unbeatable prices. Quality guaranteed, fast shipping, and excellent customer service.</p>
+                    <a href="{{ url_for('shop.products') }}" class="btn btn-light btn-lg">
+                        <i class="fas fa-shopping-bag"></i> Shop Now
+                    </a>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <i class="fas fa-store display-1"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Categories Section -->
+    {% if categories %}
+    <section class="categories-section py-5">
+        <div class="container">
+            <h2 class="text-center mb-5">Shop by Category</h2>
+            <div class="row">
+                {% for category in categories %}
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card category-card h-100 shadow-sm">
+                        {% if category.image_filename %}
+                            <img src="{{ url_for('static', filename='uploads/' + category.image_filename) }}" 
+                                 class="card-img-top" alt="{{ category.name }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-folder text-muted fa-3x"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body text-center">
+                            <h5 class="card-title">{{ category.name }}</h5>
+                            <p class="card-text text-muted">{{ category.description or "Explore our " + category.name.lower() + " collection" }}</p>
+                            <a href="{{ url_for('shop.products', category=category.id) }}" class="btn btn-primary">
+                                Browse {{ category.name }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Featured Products -->
+    {% if featured_products %}
+    <section class="featured-products py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-5">Featured Products</h2>
+            <div class="row">
+                {% for product in featured_products %}
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card product-card h-100 shadow-sm">
+                        {% if product.image_filename %}
+                            {% if product.image_filename.startswith('http') %}
+                                <img src="{{ product.image_filename }}" 
+                                     class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" 
+                                     class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+                            {% endif %}
+                        {% else %}
+                            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 250px;">
+                                <i class="fas fa-image text-white fa-3x"></i>
+                            </div>
+                        {% endif %}
+                        
+                        {% if product.is_on_sale() %}
+                            <div class="badge bg-danger position-absolute top-0 start-0 m-2">
+                                {{ product.get_discount_percentage() }}% OFF
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-muted flex-grow-1">
+                                {{ product.short_description or (product.description[:100] + '...' if product.description and product.description|length > 100 else product.description) }}
+                            </p>
+                            
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="price">
+                                        {% if product.is_on_sale() %}
+                                            <span class="h5 text-danger mb-0">${{ "%.2f"|format(product.get_effective_price()) }}</span>
+                                            <small class="text-muted text-decoration-line-through">${{ "%.2f"|format(product.price) }}</small>
+                                        {% else %}
+                                            <span class="h5 text-primary mb-0">${{ "%.2f"|format(product.price) }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">
+                                        {% if product.is_in_stock() %}
+                                            <i class="fas fa-check-circle text-success"></i> In Stock
+                                        {% else %}
+                                            <i class="fas fa-times-circle text-danger"></i> Out of Stock
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <a href="{{ url_for('shop.product_detail', id=product.id) }}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{{ url_for('shop.products') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-th-large"></i> View All Products
+                </a>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Features Section -->
+    <section class="features-section py-5">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-3 mb-4">
+                    <div class="feature-item">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-shipping-fast fa-3x text-primary"></i>
+                        </div>
+                        <h5>Fast Shipping</h5>
+                        <p class="text-muted">Free shipping on orders over $50. Express delivery available.</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="feature-item">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-shield-alt fa-3x text-primary"></i>
+                        </div>
+                        <h5>Secure Payment</h5>
+                        <p class="text-muted">Your payment information is safe and secure with us.</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="feature-item">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-undo fa-3x text-primary"></i>
+                        </div>
+                        <h5>Easy Returns</h5>
+                        <p class="text-muted">30-day return policy. No questions asked.</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="feature-item">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-headset fa-3x text-primary"></i>
+                        </div>
+                        <h5>24/7 Support</h5>
+                        <p class="text-muted">Get help whenever you need it. We're always here for you.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

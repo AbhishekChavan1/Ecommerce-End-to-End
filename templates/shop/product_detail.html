@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - E-Commerce{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('shop.products') }}">Products</a></li>
+            {% if product.category %}
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('shop.products', category=product.category.id) }}">
+                    {{ product.category.name }}
+                </a>
+            </li>
+            {% endif %}
+            <li class="breadcrumb-item active">{{ product.name }}</li>
+        </ol>
+    </nav>
+    
+    <div class="row">
+        <!-- Product Images -->
+        <div class="col-md-6">
+            <div class="product-image-container">
+                {% if product.image_filename %}
+                <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" 
+                     class="img-fluid product-image" alt="{{ product.name }}" id="main-image">
+                {% else %}
+                <div class="product-image-placeholder d-flex align-items-center justify-content-center">
+                    <i class="fas fa-image fa-5x text-muted"></i>
+                </div>
+                {% endif %}
+                
+                <!-- Image thumbnails (if multiple images were supported) -->
+                <div class="image-thumbnails mt-3">
+                    <!-- Placeholder for additional images -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Product Details -->
+        <div class="col-md-6">
+            <div class="product-details">
+                <h1 class="product-title">{{ product.name }}</h1>
+                
+                {% if product.category %}
+                <p class="text-muted mb-2">
+                    <a href="{{ url_for('shop.products', category=product.category.id) }}" 
+                       class="text-muted text-decoration-none">
+                        {{ product.category.name }}
+                    </a>
+                </p>
+                {% endif %}
+                
+                <div class="price-section mb-4">
+                    <h3 class="price-display text-primary mb-0">${{ "%.2f"|format(product.price) }}</h3>
+                    <small class="text-muted">Price includes applicable taxes</small>
+                </div>
+                
+                <!-- Stock Status -->
+                <div class="stock-status mb-3">
+                    {% if product.stock_quantity > 0 %}
+                        {% if product.stock_quantity >= 10 %}
+                        <span class="badge bg-success">In Stock</span>
+                        {% else %}
+                        <span class="badge bg-warning">Low Stock ({{ product.stock_quantity }} left)</span>
+                        {% endif %}
+                    {% else %}
+                    <span class="badge bg-danger">Out of Stock</span>
+                    {% endif %}
+                    <small class="text-muted ms-2">{{ product.stock_quantity }} available</small>
+                </div>
+                
+                <!-- Add to Cart Form -->
+                {% if product.stock_quantity > 0 %}
+                <form method="POST" action="{{ url_for('shop.add_to_cart') }}" class="add-to-cart-form mb-4">
+                    {{ form.hidden_tag() }}
+                    {{ form.product_id(value=product.id) }}
+                    
+                    <div class="row mb-3">
+                        <div class="col-4">
+                            <label for="quantity" class="form-label">Quantity</label>
+                            {{ form.quantity(class="form-control", min="1", max=product.stock_quantity, value="1") }}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex">
+                        <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                            <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-lg" id="wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    This product is currently out of stock.
+                </div>
+                <button type="button" class="btn btn-outline-primary btn-lg" disabled>
+                    Notify When Available
+                </button>
+                {% endif %}
+                
+                <!-- Product Actions -->
+                <div class="product-actions mt-4">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <i class="fas fa-truck fa-2x text-muted mb-2"></i>
+                            <p class="small mb-0">Free Shipping</p>
+                            <small class="text-muted">On orders over $50</small>
+                        </div>
+                        <div class="col-4">
+                            <i class="fas fa-undo fa-2x text-muted mb-2"></i>
+                            <p class="small mb-0">Easy Returns</p>
+                            <small class="text-muted">30-day return policy</small>
+                        </div>
+                        <div class="col-4">
+                            <i class="fas fa-shield-alt fa-2x text-muted mb-2"></i>
+                            <p class="small mb-0">Secure Payment</p>
+                            <small class="text-muted">SSL encrypted</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Product Description & Details -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="productTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="description-tab" data-bs-toggle="tab" 
+                            data-bs-target="#description" type="button" role="tab">
+                        Description
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="specifications-tab" data-bs-toggle="tab" 
+                            data-bs-target="#specifications" type="button" role="tab">
+                        Specifications
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" 
+                            data-bs-target="#reviews" type="button" role="tab">
+                        Reviews
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="productTabsContent">
+                <!-- Description Tab -->
+                <div class="tab-pane fade show active" id="description" role="tabpanel">
+                    <div class="p-4">
+                        <div class="product-description">
+                            {{ product.description|nl2br }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Specifications Tab -->
+                <div class="tab-pane fade" id="specifications" role="tabpanel">
+                    <div class="p-4">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Product ID</strong></td>
+                                        <td>{{ product.id }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Category</strong></td>
+                                        <td>{{ product.category.name if product.category else 'Uncategorized' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Stock Quantity</strong></td>
+                                        <td>{{ product.stock_quantity }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Date Added</strong></td>
+                                        <td>{{ product.created_at.strftime('%B %d, %Y') if product.created_at else 'N/A' }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reviews Tab -->
+                <div class="tab-pane fade" id="reviews" role="tabpanel">
+                    <div class="p-4">
+                        <div class="text-center">
+                            <i class="fas fa-star-half-alt fa-3x text-muted mb-3"></i>
+                            <h5>Customer Reviews</h5>
+                            <p class="text-muted">Reviews feature coming soon!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="mb-4">Related Products</h3>
+            <div class="row">
+                {% for related_product in related_products %}
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="card product-card h-100">
+                        {% if related_product.image_filename %}
+                        <img src="{{ url_for('static', filename='uploads/' + related_product.image_filename) }}" 
+                             class="card-img-top" alt="{{ related_product.name }}">
+                        {% else %}
+                        <div class="card-img-top product-image-placeholder-small">
+                            <i class="fas fa-image fa-2x text-muted"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title">{{ related_product.name }}</h6>
+                            <p class="card-text small text-muted flex-grow-1">
+                                {{ related_product.description[:80] }}...
+                            </p>
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="text-primary mb-0">${{ "%.2f"|format(related_product.price) }}</h6>
+                                    <a href="{{ url_for('shop.product_detail', id=related_product.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="addToCartModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Added to Cart</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle fa-2x text-success me-3"></i>
+                    <div>
+                        <h6 class="mb-1">{{ product.name }}</h6>
+                        <p class="mb-0 text-muted">has been added to your cart</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Continue Shopping
+                </button>
+                <a href="{{ url_for('shop.cart') }}" class="btn btn-primary">
+                    View Cart
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Add to cart form submission
+    $('.add-to-cart-form').submit(function(e) {
+        e.preventDefault();
+        
+        var form = $(this);
+        var submitBtn = form.find('button[type="submit"]');
+        var originalText = submitBtn.html();
+        
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Adding...');
+        
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: form.serialize(),
+            success: function(response) {
+                submitBtn.prop('disabled', false).html(originalText);
+                $('#addToCartModal').modal('show');
+                updateCartBadge();
+            },
+            error: function(xhr) {
+                submitBtn.prop('disabled', false).html(originalText);
+                var message = 'Error adding product to cart';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                }
+                alert(message);
+            }
+        });
+    });
+    
+    // Wishlist button
+    $('#wishlist-btn').click(function() {
+        $(this).toggleClass('btn-outline-danger btn-danger');
+        var icon = $(this).find('i');
+        icon.toggleClass('far fas');
+        
+        if ($(this).hasClass('btn-danger')) {
+            $(this).attr('title', 'Remove from wishlist');
+        } else {
+            $(this).attr('title', 'Add to wishlist');
+        }
+    });
+    
+    // Image zoom effect (if needed)
+    $('#main-image').hover(function() {
+        $(this).css('transform', 'scale(1.05)');
+    }, function() {
+        $(this).css('transform', 'scale(1)');
+    });
+});
+</script>
+{% endblock %}
